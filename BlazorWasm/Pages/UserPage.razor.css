@@ -1,0 +1,22 @@
+﻿.user-table tbody tr {
+    cursor: pointer;
+}
+
+.user-table .table-detail:hover {
+    background-color: transparent !important;
+}
+
+.user-table .table-detail {
+    overflow: hidden;
+    max-height: 0;
+    transition: 300ms ease;
+}
+
+.user-table .table-detail.open {
+    max-height: 500px;
+}
+
+.user-table .list-group {
+    max-height: 400px;
+    overflow: auto;
+}

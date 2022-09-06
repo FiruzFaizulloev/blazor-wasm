@@ -1,0 +1,53 @@
+﻿@page "/users/{UserId:int}/photos"
+@using System.Text.Json.Serialization
+@inject HttpClient Http
+
+<PageTitle>Photos</PageTitle>
+
+@if (!_photos.Any())
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="d-flex flex-wrap">
+        @foreach (var photo in _photos)
+        {
+            <img src="@photo.ThumbnailUrl" class="img-thumbnail" alt="@photo.Title}">
+        }
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public int? UserId { get; set; }
+
+    private List<PhotoItem>? _photos = new List<PhotoItem>();
+    private string _apiUrl = "https://jsonplaceholder.typicode.com";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _photos = await Http.GetFromJsonAsync<List<PhotoItem>>($"{_apiUrl}/users/{UserId}/photos");
+    }
+
+    public class PhotoItem
+    {
+        [JsonPropertyName("albumId")]
+        public int AlbumId { get; set; }
+
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("title")]
+        public string Title { get; set; }
+
+        [JsonPropertyName("url")]
+        public string Url { get; set; }
+
+        [JsonPropertyName("thumbnailUrl")]
+        public string ThumbnailUrl { get; set; }
+    }
+
+}

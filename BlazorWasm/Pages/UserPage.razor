@@ -1,0 +1,121 @@
+﻿@page "/users"
+@using System.Text.Json.Serialization
+@inject HttpClient Http
+
+<PageTitle>Users</PageTitle>
+
+<h1>Users</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+@if (_users == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else
+{
+    <table class="table table-hover user-table">
+        <thead>
+        <tr>
+            <th>Full name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var user in _users)
+        {
+            <tr class="@(_selectedUser?.id == user.id ? "table-primary" : "")"
+                @onclick="@(() => GetTodos(user))">
+                <td>@user.name</td>
+                <td>@user.email</td>
+                <td>@user.phone</td>
+                <td>
+                    <a href="/users/@user.id/photos" class="btn btn-sm btn-primary"
+                            @onclick:stopPropagation="true">
+                        Photos
+                    </a>
+                </td>
+            </tr>
+            @if (_selectedUser?.id == user.id)
+            {
+                <tr class="table-detail table-light">
+                    <td colspan="4">
+                        <div class="w-25 mb-3">
+                            <label for="todoFilter" class="form-label mb-0">Filter</label>
+                            <select class="form-select form-select-sm" id="todoFilter"
+                                    @onchange="@(e => GetTodos(user, (string?)e.Value))">
+                                <option selected value="">All</option>
+                                <option value="true">Completed</option>
+                                <option value="false">Not completed</option>
+                            </select>
+                        </div>
+
+                        <div class="list-group">
+                            @if (!_todos.Any())
+                            {
+                                <p>Loading...</p>
+                            }
+
+                            @foreach (var todo in _todos)
+                            {
+                                <div class="list-group-item list-group-item-action @(todo.Completed ? "list-group-item-success" : "")">
+                                    @todo.Title
+                                </div>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private User[]? _users;
+    private List<Todo>? _todos = new List<Todo>();
+    private User? _selectedUser;
+
+    private string _apiUrl = "https://jsonplaceholder.typicode.com";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _users = await Http.GetFromJsonAsync<User[]>($"{_apiUrl}/users");
+    }
+
+    private async Task GetTodos(User user, string? completed = null)
+    {
+        _todos.Clear();
+        _selectedUser = user;
+        var completedTodos = !String.IsNullOrWhiteSpace(completed) ? $"completed={completed}" : "";
+        _todos = await Http.GetFromJsonAsync<List<Todo>>($"{_apiUrl}/users/{user.id}/todos?{completedTodos}");
+    }
+
+    public class User
+    {
+        public int id { get; set; }
+        public string name { get; set; }
+        public string email { get; set; }
+        public string phone { get; set; }
+    }
+
+    public class Todo
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("userId")]
+        public int UserId { get; set; }
+
+        [JsonPropertyName("title")]
+        public string Title { get; set; }
+
+        [JsonPropertyName("completed")]
+        public bool Completed { get; set; }
+    }
+
+}
